@@ -59,7 +59,7 @@ public class Matrice {
      */
     public Matrice multPar(Matrice other) {
         Matrice result = new Matrice(this.taille, this.maxBorne);
-        List<ThreadMultLigne> threads = new ArrayList<>();
+        List<Thread> threads = new ArrayList<>();
 
         for (int i = 0; i < this.taille; i++) {
             ThreadMultLigne thread = new ThreadMultLigne(this, other, result, i);
@@ -67,7 +67,107 @@ public class Matrice {
             thread.start();
         }
 
-        for (ThreadMultLigne thread : threads) {
+        for (Thread thread : threads) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Multiplication parallèle de deux matrices, en utilisant des Threads pour chaque ligne.
+     * Au lieu de créer un Thread par ligne, on crée un Thread par bloc de lignes.
+     * Il y a autant de Threads que de Coeurs disponibles.
+     * @param matrice
+     * @return
+     */
+    public Matrice multCore(Matrice other) {
+        Matrice result = new Matrice(this.taille, this.maxBorne);
+        List<Thread> threads = new ArrayList<>();
+        int availableProcessors = Runtime.getRuntime().availableProcessors();
+        int rowsPerThread = (int) Math.ceil((double) this.taille / availableProcessors);
+        System.out.println("Available processors: " + availableProcessors);
+        System.out.println("Matrix size: " + this.taille);
+        System.out.println("Ratio: " + (double) this.taille / availableProcessors);
+        System.out.println("Rows per thread: " + rowsPerThread);
+
+        int neededProcessors = (int) Math.ceil((double) this.taille / rowsPerThread);
+        System.out.println(neededProcessors + " processors needed");
+
+        for (int i = 0; i < neededProcessors; i++) {
+            int startRow = i * rowsPerThread;
+            int endRow = Math.min(startRow + rowsPerThread, this.taille);
+
+            System.out.println("Thread " + i + " will process rows " + startRow + " to " + endRow);
+
+            ThreadMultCore thread = new ThreadMultCore(this, other, result, startRow, endRow);
+            threads.add(thread);
+            thread.start();
+        }
+
+        System.out.println("Threads created: " + threads.size());
+
+        for (Thread thread : threads) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return result;
+    }
+
+    public Matrice multCoreV2(Matrice other) {
+        Matrice result = new Matrice(this.taille, this.maxBorne);
+        List<Thread> threads = new ArrayList<>();
+        int availableProcessors = Runtime.getRuntime().availableProcessors();
+
+        int nrows = this.taille / availableProcessors;
+
+        for (int i = 0; i < availableProcessors; ++i) {
+            int startRow = i * nrows;
+            int endRow = (i == availableProcessors - 1) ? this.taille : startRow + nrows;
+            ThreadMultCore thread = new ThreadMultCore(this, other, result, startRow, endRow);
+            threads.add(thread);
+            thread.start();
+        }
+
+        System.out.println("Threads created: " + threads.size());
+
+        for (Thread thread : threads) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return result;
+    }
+
+    public Matrice multCoreBlock(Matrice other) {
+        Matrice result = new Matrice(this.taille, this.maxBorne);
+        List<Thread> threads = new ArrayList<>();
+        int availableProcessors = Runtime.getRuntime().availableProcessors();
+        int blockSize = (int) Math.ceil((double) this.taille / availableProcessors);
+
+        for (int i = 0; i < availableProcessors; i++) {
+            int startRow = (i / availableProcessors) * blockSize;
+            int endRow = Math.min(startRow + blockSize, this.taille);
+            int startCol = (i % availableProcessors) * blockSize;
+            int endCol = Math.min(startCol + blockSize, this.taille);
+
+            ThreadMultBlock thread = new ThreadMultBlock(this, other, result, startRow, endRow, startCol, endCol);
+            threads.add(thread);
+            thread.start();
+        }
+
+        for (Thread thread : threads) {
             try {
                 thread.join();
             } catch (InterruptedException e) {
