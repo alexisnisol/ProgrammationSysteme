@@ -3,7 +3,7 @@ public class Main {
 
     public static void main(String[] args) {
         
-        Stock stock = new Stock();
+        oldStock stock = new oldStock();
 
         Fournisseur fournisseur = new Fournisseur(stock);
         Assembleur assembleur = new Assembleur(stock);

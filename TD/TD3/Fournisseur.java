@@ -1,9 +1,9 @@
 public class Fournisseur extends Thread {
 
-    private Stock stock;
+    private oldStock stock;
     private TypeFournisseur type;
 
-    public Fournisseur(Stock stock, TypeFournisseur type) {
+    public Fournisseur(oldStock stock, TypeFournisseur type) {
         this.stock = stock;
         this.type = type;
     }
@@ -29,6 +29,19 @@ public class Fournisseur extends Thread {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    public void attendre() {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void fournir() {
+        this.start();
+        this.attendre();
     }
 
 }

@@ -1,8 +1,8 @@
 public class Assembleur extends Thread {
     
-    private Stock stock;
+    private oldStock stock;
 
-    public Assembleur(Stock stock) {
+    public Assembleur(oldStock stock) {
         this.stock = stock;
     }
 
